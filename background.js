@@ -1,16 +1,30 @@
-var promoCount = 0;
 var trendCount = 0;
 var followCount = 0;
 var currentURL = window.location.href;
 var newURL;
 
+window.addEventListener('popstate', function (event) {
+	newURL = this.location.href;
+	setTimeout(function(){
+		if(newURL != currentURL){
+			trendCount = 0;
+			followCount = 0;
+			removeTrendPromo();
+			removeFollowPromo();
+			currentURL = newURL;
+		}
+	}, 200);
+});
+
 var splitURL = currentURL.split('?unsafe_link=');
 if(splitURL[0] == 'https://twitter.com/safety/unsafe_link_warning'){
+	window.history.replaceState({}, null, 'https://twitter.com/action/redirect');
+	document.body.innerHTML = 'Redirecting you to '+splitURL[1];
 	window.location.href = splitURL[1];
 }else{
-	removeFollowPromo();
-	removeTrendPromo();
 	removePromo();
+	removeTrendPromo();
+	removeFollowPromo();
 
 	$('body').click(function() {
 	   setTimeout(function(){
@@ -18,35 +32,26 @@ if(splitURL[0] == 'https://twitter.com/safety/unsafe_link_warning'){
 			if(newURL != currentURL){
 				removeFollowPromo();
 				removeTrendPromo();
-				removePromo();
 				currentURL = newURL;
-			}else{
-				console.log('url unchanged')
 			}
 		}, 200);
 	});
 }
 
 function removePromo(){
-	if(promoCount < 10){
 		setTimeout(function(){
 			if($('.css-1dbjc4n.r-j7yic.r-qklmqi.r-1adg3ll.r-1ny4l3l')[0]){
 				var tweetClass = $('.css-1dbjc4n.r-j7yic.r-qklmqi.r-1adg3ll.r-1ny4l3l');
 				for(var i=0; i < tweetClass.length; i++){
-					if(tweetClass[i].innerHTML.indexOf('>Promoted</') !== -1){ 
+					if(tweetClass[i].innerHTML.indexOf('>Promoted</') !== -1){
 						$(tweetClass[i]).remove();
-					} 
-					
+					}					
 				}
-				promoCount = 0;
-			}else{
-				promoCount++;
-				setTimeout(function(){
-					removePromo();
-				}, 500);				
 			}
 		}, 200);
-	}
+		setTimeout(function(){
+			removePromo();
+		}, 1000);
 }
 
 function removeTrendPromo(){
@@ -57,7 +62,6 @@ function removeTrendPromo(){
 				for(var i=0; i < tweetClass.length; i++){
 					if(tweetClass[i].innerHTML.indexOf('>Promoted by ') !== -1){ 
 						$(tweetClass[i]).remove();
-						console.log('trend '+i+' removed');
 					} 
 					
 				}
@@ -80,7 +84,6 @@ function removeFollowPromo(){
 			for(var i=0; i < tweetClass.length; i++){
 				if(tweetClass[i].innerHTML.indexOf('>Promoted</') !== -1){ 
 					$(tweetClass[i]).remove();
-					console.log('follow '+i+' removed');
 				} 
 					
 			}
